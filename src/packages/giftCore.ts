@@ -8,9 +8,9 @@ export class GiftCore{
     contractAddress: string
 
     constructor(contractName: CONTRACT_NAME){
-        this.contractAddress = GIFT_CONTRACT(contractName)
+        this.contractAddress = GIFT_CONTRACT[contractName]
         this.provider = new providers.JsonRpcProvider(RPC_URL, CHAIN_ID);
         this.signer =new Wallet(PRIVATE_KEY, this.provider)
-        this.contract = new Contract(this.contractAddress, GIFT_ABI[contractName], this.signer)
+        this.contract = new Contract(GIFT_CONTRACT[contractName], GIFT_ABI[contractName], this.signer)
     }
 }

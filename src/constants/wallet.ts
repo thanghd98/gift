@@ -1,1 +1,1 @@
-export const PRIVATE_KEY = 'a11ad1fd9ec8c5f88ec1d2ad7cc53e75e28ba6dea44aad9eaa1876d27b622dcc'
+export const PRIVATE_KEY = '3b7f923a3aae72da70006738a6007fd55d2c34e1725103424f712fbef9366197'

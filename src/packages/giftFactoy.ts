@@ -1,9 +1,9 @@
 import { Contract, ethers } from "ethers";
-import { CONTRACT_NAME, ERC20ABI } from '../constants'
-import { CreateGiftsParams } from "../types";
+import { CONTRACT_NAME, ERC20ABI, GIFT_ABI } from '../constants'
+import { ClaimReward, CreateGiftsParams, SetFee } from "../types";
 import { GasSponsor } from "./gasSponsor";
 import { GiftCore } from "./giftCore";
-
+import { convertBalanceToWei } from '@wallet/utils'
 
 export class GiftFactory extends GiftCore{
   sponsorGasContract: GasSponsor
@@ -15,27 +15,24 @@ export class GiftFactory extends GiftCore{
 
   async createGifts(params: CreateGiftsParams): Promise<string>{
       const { rewardToken, totalReward, totalSlots, randomPercent, baseMultiplier = 1} = params
-      const nonce = await this.signer.getTransactionCount()
       try {
         const inputConfig = {
-          rewardToken,
-          totalReward: BigInt(ethers.utils.parseEther(totalReward.toString()).toString()),
-          totalSlots: BigInt(ethers.utils.parseEther(totalSlots.toString()).toString()),
-          randomPercent: BigInt(randomPercent as number * 100),
+          rewardToken: rewardToken.address,
+          totalReward: BigInt(convertBalanceToWei(totalReward.toString(), rewardToken.decimal)),
+          totalSlots: BigInt(totalSlots as number),
+          randomPercent: BigInt(randomPercent as number),
           baseMultiplier: BigInt(baseMultiplier as number)
         }
 
-        // await this.setFee(ethers.constants.AddressZero)
+        await this.setFee({feeRecipient: this.signer.address, tokenAddress: ethers.constants.AddressZero, isActivated: true, percentAmount: 0})
 
         // const feeConfig = await this.contract.getFee(ethers.constants.AddressZero);
         // const feeAmount = (BigInt(inputConfig.totalReward.toString()) * BigInt(feeConfig.percentAmount)) / BigInt(10000);
         // const totalRewards = BigInt(inputConfig.totalReward.toString());
 
-        const tokenContract = new Contract(rewardToken, ERC20ABI, this.signer)
-        const approve = await tokenContract.approve(this.contractAddress, ethers.utils.parseEther(totalReward.toString()),{
-          nonce: nonce 
-        })
-        console.log("🚀 ~ GiftFactory ~ approve ~ approve:", approve)
+        const tokenContract = new Contract(rewardToken.address, ERC20ABI, this.signer)
+        const response = await tokenContract.approve(this.contractAddress,String(convertBalanceToWei(totalReward.toString(), rewardToken.decimal)))
+         await response.wait()
 
         const hash = await this.sponsorGasContract.createGifts({
           giftContractAddress: this.contractAddress,
@@ -49,29 +46,55 @@ export class GiftFactory extends GiftCore{
       }
   }
 
-  async getCreatedGift(index: string): Promise<string>{
-    const contractAddress = await this.contract.getCreatedGift(index)
+  async claimGift(params: ClaimReward): Promise<string>{
+    const hash = await this.sponsorGasContract.claimReward(params)
 
-    return contractAddress
+    return hash
   }
 
-  async setFee(feeToken: string, isActivated: boolean = true, percentAmount: number = 0, feeRecipient: string = this.signer.address){
+  async submitRewardRecipient(recipcient: string, giftContractAddress: string): Promise<string>{
+    try {
+      const giftContract = new ethers.Contract(giftContractAddress , GIFT_ABI['COIN98_GIFT_CONTRACT_ADDRESS'], this.signer )
+
+      const { hash } = await giftContract.connect(this.signer).submitRewardRecipient(recipcient,{
+        gasLimit: 650000
+      })
+
+      return hash
+    } catch (error) {
+      throw new Error(error as unknown as string)
+    }
+  }
+
+  async getCreatedGift(index: string): Promise<string>{
+    try {
+      const contractAddress = await this.contract.getCreatedGift(index)
+  
+      return contractAddress
+    } catch (error) {
+      throw new Error(error as unknown as string)
+    }
+  }
+
+  async setFee( params: SetFee ): Promise<string>{
+    const { tokenAddress, isActivated = true, percentAmount = 0, feeRecipient } = params
     try {
       const unlockSetFee = await this.unlockFunction('setFee');
       
       if(unlockSetFee){
-        const nonce = await this.signer.getTransactionCount()
-        console.log("🚀 ~ GiftFactory ~ setFee ~ nonce:", nonce)
-        const hashFee = await this.contract.connect(this.signer).setFee(feeToken, {
+        const nonce = await this.provider.getTransactionCount(this.signer.address, 'latest')
+        const response = await this.contract.connect(this.signer).setFee(tokenAddress, {
           isActivated,
           percentAmount: BigInt(percentAmount),
           feeRecipient: feeRecipient
         },{
           gasLimit: 210000,
-          nonce: nonce + 1
+          nonce
         })
 
-        return hashFee
+        const { transactionHash } = await response.wait()
+
+        return transactionHash
       }
       throw new Error("Contract haven't unlock yet")
     } catch (error) {
@@ -84,13 +107,16 @@ export class GiftFactory extends GiftCore{
       const unlockAdmin = await this.unlockFunction('setAdmin');
       
       if(unlockAdmin){
-        const nonce = await this.signer.getTransactionCount()
-        const hashAdmin = await this.contract.setAdmin(address, true,{
+        const nonce = await this.provider.getTransactionCount(this.signer.address, 'latest')
+
+        const response = await this.contract.setAdmin(address, true,{
           gasLimit: 210000,
-          nonce: nonce + 1
+          nonce: nonce
         })
 
-        return hashAdmin
+        const { transactionHash } = await response.wait()
+
+        return transactionHash
       }
       throw new Error("Contract haven't unlock yet")
     } catch (error) {
@@ -99,18 +125,25 @@ export class GiftFactory extends GiftCore{
   }
 
   async isAdmin(address: string): Promise<boolean>{
-    const isAdmin = await this.contract.isAdmin(address)
-    return isAdmin
+    try {
+      const isAdmin = await this.contract.isAdmin(address)
+      return isAdmin
+    } catch (error) {
+      throw new Error(error as unknown as string)      
+    }
   }
 
   async unlockFunction(functionName: string): Promise<string>{
     try {
-      const nonce = await this.signer.getTransactionCount()
-      const {hash} = await this.contract.unlock(this.contract.interface.getSighash(functionName),{
+      const nonce = await this.signer.getTransactionCount('pending')
+      
+      const response = await this.contract.unlock(this.contract.interface.getSighash(functionName),{
+        gasLimit: 210000,
         nonce
       });
-  
-      return hash
+      const { transactionHash } = await response.wait()
+
+      return transactionHash
     } catch (error) {
       throw new Error(error as unknown as string)      
     }

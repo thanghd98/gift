@@ -1,16 +1,34 @@
-import { BigNumber } from "ethers"
+import { TokenInfo, Wallet } from '@wallet/core'
 
-export interface CreateGiftsParams{
-    rewardToken: string,
-    totalReward: number | bigint | BigNumber,
-    totalSlots: number | bigint | BigNumber,
-    randomPercent: number | bigint | BigNumber,
-    baseMultiplier?: number | bigint | BigNumber
+export interface CreateGiftsParams {
+    rewardToken: TokenInfo,
+    totalReward: number,
+    totalSlots: number,
+    randomPercent: number,
+    baseMultiplier?: number
 }
 
-export interface GasSponsorCreateGiftsParams{
+export interface GasSponsorCreateGiftsParams {
    giftContractAddress: string,
-   inputConfig: CreateGiftsParams,
+   inputConfig: {
+    rewardToken: string,
+    totalReward: number | bigint,
+    totalSlots: number | bigint,
+    randomPercent: number | bigint,
+    baseMultiplier?: number | bigint
+   },
    feeToken: string,
-   amount?: number | string
+   nonce?: number | string,
+}
+
+export interface ClaimReward {
+    wallet: Wallet,
+    giftContractAddress: string
+}
+
+export interface SetFee {
+    tokenAddress: string,
+    isActivated: boolean,
+    percentAmount: number,
+    feeRecipient: string
 }
