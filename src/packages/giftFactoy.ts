@@ -135,7 +135,7 @@ export class GiftFactory extends GiftCore{
 
   async unlockFunction(functionName: string): Promise<string>{
     try {
-      const nonce = await this.signer.getTransactionCount('pending')
+      const nonce = await this.provider.getTransactionCount(this.signer.address, 'latest')
       
       const response = await this.contract.unlock(this.contract.interface.getSighash(functionName),{
         gasLimit: 210000,
