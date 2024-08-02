@@ -17,8 +17,8 @@ export class GiftFactory extends GiftCore{
       const { rewardToken, totalReward, totalSlots, randomPercent, baseMultiplier = 1} = params
       try {
         const inputConfig = {
-          rewardToken: rewardToken.address,
-          totalReward: BigInt(convertBalanceToWei(totalReward.toString(), rewardToken.decimal)),
+          rewardToken: rewardToken.address as string,
+          totalReward: BigInt(convertBalanceToWei(totalReward.toString(), rewardToken.decimal as number)),
           totalSlots: BigInt(totalSlots as number),
           randomPercent: BigInt(randomPercent as number),
           baseMultiplier: BigInt(baseMultiplier as number)
@@ -30,8 +30,11 @@ export class GiftFactory extends GiftCore{
         // const feeAmount = (BigInt(inputConfig.totalReward.toString()) * BigInt(feeConfig.percentAmount)) / BigInt(10000);
         // const totalRewards = BigInt(inputConfig.totalReward.toString());
 
-        const tokenContract = new Contract(rewardToken.address, ERC20ABI, this.signer)
-        const response = await tokenContract.approve(this.contractAddress,String(convertBalanceToWei(totalReward.toString(), rewardToken.decimal)))
+        const tokenContract = new Contract(rewardToken.address as string, ERC20ABI, this.signer)
+        const nonce = await this.provider.getTransactionCount(this.signer.address, 'latest')
+        const response = await tokenContract.approve(this.contractAddress,String(convertBalanceToWei(totalReward.toString(), rewardToken.decimal)),{
+          nonce
+        })
          await response.wait()
 
         const hash = await this.sponsorGasContract.createGifts({

@@ -1,7 +1,7 @@
 import { TokenInfo, Wallet } from '@wallet/core'
 
 export interface CreateGiftsParams {
-    rewardToken: TokenInfo,
+    rewardToken: Partial<TokenInfo>,
     totalReward: number,
     totalSlots: number,
     randomPercent: number,
