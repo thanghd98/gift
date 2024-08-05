@@ -8,23 +8,30 @@ export class GasSponsor extends GiftCore {
         super(CONTRACT_NAME.GAS_SPONSOR_CONTRACT_ADDRESS)
     }
 
-    async createGifts(params: GasSponsorCreateGiftsParams): Promise<string>{
-        const { inputConfig, feeToken, giftContractAddress} = params
+    async createGifts(params: GasSponsorCreateGiftsParams): Promise<{contractAddress: string, transactionHash: string}>{
+        const { inputConfig, feeToken, giftContractAddress, signer} = params
         
         try {
-            const nonce = await this.provider.getTransactionCount(this.signer.address, 'latest')
-            const response = await this.contract.connect(this.signer).createGift(giftContractAddress, inputConfig, feeToken,{
+            const nonce = await this.provider.getTransactionCount(signer.address, 'latest')
+            const response = await this.contract.connect(signer).createGift(giftContractAddress, inputConfig, feeToken,{
                 gasLimit: 650000,
                 nonce: nonce
             });
 
-            const { transactionHash } = await response.wait()
+            const { transactionHash ,events } = await response.wait()
 
-            return transactionHash
+            const transferEvent = events?.find((e: { event: string }) => e.event === "Transfer")
+            const contractAddress = transferEvent?.args['to']
+
+            return {
+                contractAddress,
+                transactionHash
+            }
         } catch (error) {
           throw new Error(error as unknown as string)
         }
     }
+
 
     async claimReward(params: ClaimReward): Promise<string>{
         const{ wallet, giftContractAddress } = params

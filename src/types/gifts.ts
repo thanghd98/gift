@@ -1,6 +1,8 @@
-import { TokenInfo, Wallet } from '@wallet/core'
+import { TokenInfo, Wallet } from "@wallet/core"
+import { Wallet as Signer } from "ethers"
 
 export interface CreateGiftsParams {
+    wallet: Wallet
     rewardToken: Partial<TokenInfo>,
     totalReward: number,
     totalSlots: number,
@@ -9,6 +11,7 @@ export interface CreateGiftsParams {
 }
 
 export interface GasSponsorCreateGiftsParams {
+   signer: Signer
    giftContractAddress: string,
    inputConfig: {
     rewardToken: string,
@@ -27,8 +30,8 @@ export interface ClaimReward {
 }
 
 export interface SetFee {
-    tokenAddress: string,
-    isActivated: boolean,
-    percentAmount: number,
-    feeRecipient: string
+    tokenAddress?: string,
+    isActivated?: boolean,
+    percentAmount?: number,
+    feeRecipient?: string
 }
