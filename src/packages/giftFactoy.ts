@@ -50,10 +50,10 @@ export class GiftFactory extends GiftCore{
     }
   }
 
-  async claimGift(params: ClaimReward): Promise<string>{
-    const hash = await this.sponsorGasContract.claimReward(params)
+  async claimGift(params: ClaimReward): Promise<{amount: number, transactionHash: string}>{
+    const response = await this.sponsorGasContract.claimReward(params)
 
-    return hash
+    return response
   }
 
   async submitRewardRecipient(recipcient: string, giftContractAddress: string): Promise<string>{

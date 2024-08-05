@@ -33,7 +33,7 @@ export class GasSponsor extends GiftCore {
     }
 
 
-    async claimReward(params: ClaimReward): Promise<string>{
+    async claimReward(params: ClaimReward): Promise<{amount: number, transactionHash: string}>{
         const{ wallet, giftContractAddress } = params
         try {
             const nonce = await this.provider.getTransactionCount(wallet.address, 'latest')
@@ -43,9 +43,12 @@ export class GasSponsor extends GiftCore {
                 nonce
             })
 
-            const { transactionHash } = await response.wait()
+            const { transactionHash , events } = await response.wait()
 
-            return transactionHash
+            const transferEvent = events?.find((e: { event: string }) => e.event === "Transfer")
+            const amount = Number(transferEvent?.args['amount'])
+
+            return {transactionHash, amount}
         } catch (error) {
             throw new Error(error as unknown as string)   
         }
