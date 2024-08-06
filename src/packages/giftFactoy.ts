@@ -1,6 +1,6 @@
 import { Contract, ethers } from "ethers";
 import { CONTRACT_NAME, ERC20ABI, GIFT_ABI } from '../constants'
-import { ClaimRewardParams, ClaimRewardRespone, CreateGiftRespone, CreateGiftsParams, SetFee, WithdrawGiftRespone, WithdrawRewardParams } from "../types";
+import { ClaimRewardParams, ClaimRewardRespone, CreateGiftRespone, CreateGiftsParams, GetInsertedSlotParams, SetFee, WithdrawGiftRespone, WithdrawRewardParams } from "../types";
 import { convertBalanceToWei } from "../utils";
 import { GasSponsor } from "./gasSponsor";
 import { GiftCore } from "./giftCore";
@@ -144,6 +144,27 @@ export class GiftFactory extends GiftCore{
     }
   }
 
+  async getGiftConfig(giftContractAddress: string){
+    try {
+      const giftContract = new ethers.Contract(giftContractAddress , GIFT_ABI['COIN98_GIFT_CONTRACT_ADDRESS'], this.signer)
+      const giftConfig = await giftContract.connect(this.signer).getGiftConfig()
+      return giftConfig
+    } catch (error) {
+      throw new Error(error as unknown as string)      
+    }
+  }
+
+  async getInsertedSlot(params: GetInsertedSlotParams){
+    const { giftContractAddress, recipientAddress } = params
+    try {
+      const giftContract = new ethers.Contract(giftContractAddress , GIFT_ABI['COIN98_GIFT_CONTRACT_ADDRESS'], this.signer)
+      const giftConfig = await giftContract.connect(this.signer).getInsertedSlot(recipientAddress)
+      return giftConfig
+    } catch (error) {
+      throw new Error(error as unknown as string)
+    }
+  }
+
   async unlockFunction(functionName: string): Promise<string>{
     try {
       const nonce = await this.getNonceAccount(this.signer.address)
@@ -156,7 +177,7 @@ export class GiftFactory extends GiftCore{
 
       return transactionHash
     } catch (error) {
-      throw new Error(error as unknown as string)      
+      throw new Error(error as unknown as string)
     }
   }
 }

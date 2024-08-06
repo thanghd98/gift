@@ -55,3 +55,8 @@ export interface CreateGiftRespone extends BaseRewardRespone{
 export interface WithdrawGiftRespone extends BaseRewardRespone{
     amount: number
 }
+
+export interface GetInsertedSlotParams{
+    giftContractAddress: string,
+    recipientAddress: string
+}
