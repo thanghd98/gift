@@ -60,3 +60,22 @@ export interface GetInsertedSlotParams{
     giftContractAddress: string,
     recipientAddress: string
 }
+
+export interface GiftConfigResponse{
+    baseMultiplier: number
+    endTimestamp: number
+    meanRewardPerSlot: number
+    randomPercent: number
+    remainingReward: number
+    remainingSlots: number
+    rewardToken: string
+    totalReward: number
+    totalSlots: number
+}
+
+export interface InsertedSlotRepsonse{
+    isClaimed: boolean,
+    isInserted: boolean,
+    reward: number,
+    slotNumber: number
+}
