@@ -1,6 +1,6 @@
-import { Contract, ethers, Wallet } from "ethers";
+import { Contract, ethers } from "ethers";
 import { CONTRACT_NAME, ERC20ABI, GIFT_ABI } from '../constants'
-import { ClaimReward, CreateGiftsParams, SetFee } from "../types";
+import { ClaimRewardParams, ClaimRewardRespone, CreateGiftRespone, CreateGiftsParams, SetFee, WithdrawGiftRespone, WithdrawRewardParams } from "../types";
 import { convertBalanceToWei } from "../utils";
 import { GasSponsor } from "./gasSponsor";
 import { GiftCore } from "./giftCore";
@@ -13,25 +13,26 @@ export class GiftFactory extends GiftCore{
     this.sponsorGasContract = new GasSponsor()
   }
 
-  async createGifts(params: CreateGiftsParams): Promise<{contractAddress: string, transactionHash: string}>{
-    const {wallet, rewardToken, totalReward, totalSlots, randomPercent, baseMultiplier = 1} = params
+  async createGifts(params: CreateGiftsParams): Promise<CreateGiftRespone>{
+    const {wallet, rewardToken, totalReward, totalSlots, randomPercent, endTimestamp , baseMultiplier = 1} = params
     try {
       const inputConfig = {
         rewardToken: rewardToken.address as string,
         totalReward: BigInt(convertBalanceToWei(totalReward.toString(), rewardToken.decimal as number)),
-        totalSlots: BigInt(totalSlots as number),
-        randomPercent: BigInt(randomPercent as number),
-        baseMultiplier: BigInt(baseMultiplier as number)
+        totalSlots: BigInt(totalSlots),
+        randomPercent: BigInt(randomPercent),
+        baseMultiplier: BigInt(baseMultiplier),
+        endTimestamp
       }
 
       // const feeConfig = await this.contract.getFee(ethers.constants.AddressZero);
       // const feeAmount = (BigInt(inputConfig.totalReward.toString()) * BigInt(feeConfig.percentAmount)) / BigInt(10000);
       // const totalRewards = BigInt(inputConfig.totalReward.toString());
 
-      const signer = new Wallet(wallet?.privateKey as string, this.provider)
+      const signer = this.createSigner(wallet)
 
       const tokenContract = new Contract(rewardToken.address as string, ERC20ABI, signer)
-      const nonce = await this.provider.getTransactionCount(signer.address, 'latest')
+      const nonce = await this.getNonceAccount(signer.address)
       const response = await tokenContract.approve(this.contractAddress,String(convertBalanceToWei(totalReward.toString(), rewardToken.decimal)),{
         nonce
       })
@@ -50,8 +51,14 @@ export class GiftFactory extends GiftCore{
     }
   }
 
-  async claimGift(params: ClaimReward): Promise<{amount: number, transactionHash: string}>{
+  async claimGift(params: ClaimRewardParams): Promise<ClaimRewardRespone>{
     const response = await this.sponsorGasContract.claimReward(params)
+
+    return response
+  }
+
+  async withdrawRemainingReward(params: WithdrawRewardParams): Promise<WithdrawGiftRespone>{
+    const response = await this.sponsorGasContract.withdrawRemainingReward(params)
 
     return response
   }
@@ -86,7 +93,7 @@ export class GiftFactory extends GiftCore{
       const unlockSetFee = await this.unlockFunction('setFee');
       
       if(unlockSetFee){
-        const nonce = await this.provider.getTransactionCount(this.signer.address, 'latest')
+        const nonce = await this.getNonceAccount(this.signer.address)
         const response = await this.contract.connect(this.signer).setFee(tokenAddress, {
           isActivated,
           percentAmount: BigInt(percentAmount),
@@ -111,7 +118,7 @@ export class GiftFactory extends GiftCore{
       const unlockAdmin = await this.unlockFunction('setAdmin');
       
       if(unlockAdmin){
-        const nonce = await this.provider.getTransactionCount(this.signer.address, 'latest')
+        const nonce = await this.getNonceAccount(this.signer.address)
 
         const response = await this.contract.setAdmin(address, true,{
           gasLimit: 210000,
@@ -139,7 +146,7 @@ export class GiftFactory extends GiftCore{
 
   async unlockFunction(functionName: string): Promise<string>{
     try {
-      const nonce = await this.provider.getTransactionCount(this.signer.address, 'latest')
+      const nonce = await this.getNonceAccount(this.signer.address)
       
       const response = await this.contract.unlock(this.contract.interface.getSighash(functionName),{
         gasLimit: 210000,

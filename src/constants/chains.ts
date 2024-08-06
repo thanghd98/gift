@@ -1,2 +1,4 @@
-export const RPC_URL =  (process.env.NODE_ENV === 'development') ? "https://rpc-testnet.viction.xyz" : "https://rpc-testnet.viction.xyz" 
-export const CHAIN_ID = (process.env.NODE_ENV === 'development') ? 89 : 89
+const isDev = process.env.NODE_ENV === 'development'
+
+export const RPC_URL = isDev ? "https://rpc-testnet.viction.xyz" : "https://rpc-testnet.viction.xyz" 
+export const CHAIN_ID = isDev ? 89 : 89
