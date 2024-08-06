@@ -1,4 +1,3 @@
-import { Wallet } from "ethers";
 import { CONTRACT_NAME } from "../constants";
 import { ClaimRewardParams, ClaimRewardRespone, CreateGiftRespone, GasSponsorCreateGiftsParams, WithdrawGiftRespone, WithdrawRewardParams } from "../types";
 import { GiftCore } from "./giftCore";
