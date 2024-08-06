@@ -1,9 +1,9 @@
 import { Contract, ethers, Wallet } from "ethers";
 import { CONTRACT_NAME, ERC20ABI, GIFT_ABI } from '../constants'
 import { ClaimReward, CreateGiftsParams, SetFee } from "../types";
+import { convertBalanceToWei } from "../utils";
 import { GasSponsor } from "./gasSponsor";
 import { GiftCore } from "./giftCore";
-import { convertBalanceToWei } from '@wallet/utils'
 
 export class GiftFactory extends GiftCore{
   sponsorGasContract: GasSponsor

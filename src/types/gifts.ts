@@ -1,5 +1,5 @@
-import { TokenInfo, Wallet } from "@wallet/core"
-import { Wallet as Signer } from "ethers"
+import type { TokenInfo, Wallet } from "@wallet/core"
+import type { Wallet as Signer } from "ethers"
 
 export interface CreateGiftsParams {
     wallet: Wallet
