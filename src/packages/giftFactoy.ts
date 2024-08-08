@@ -1,6 +1,6 @@
 import { Contract, ethers } from "ethers";
 import { CONTRACT_NAME, ERC20ABI, GIFT_ABI } from '../constants'
-import { ClaimRewardParams, ClaimRewardRespone, CreateGiftRespone, CreateGiftsParams, GetInsertedSlotParams, SetFee, WithdrawGiftRespone, WithdrawRewardParams } from "../types";
+import { ClaimRewardParams, ClaimRewardRespone, CreateGiftRespone, CreateGiftsParams, GetInsertedSlotParams, GiftConfigResponse, InsertedSlotRepsonse, SetFee, WithdrawGiftRespone, WithdrawRewardParams } from "../types";
 import { convertBalanceToWei } from "../utils";
 import { GasSponsor } from "./gasSponsor";
 import { GiftCore } from "./giftCore";
@@ -144,22 +144,39 @@ export class GiftFactory extends GiftCore{
     }
   }
 
-  async getGiftConfig(giftContractAddress: string){
+  async getGiftConfig(giftContractAddress: string): Promise<GiftConfigResponse>{
     try {
       const giftContract = new ethers.Contract(giftContractAddress , GIFT_ABI['COIN98_GIFT_CONTRACT_ADDRESS'], this.signer)
       const giftConfig = await giftContract.connect(this.signer).getGiftConfig()
-      return giftConfig
+
+      return {
+        baseMultiplier: Number(giftConfig.baseMultiplier.toString()),
+        endTimestamp:  Number(giftConfig.endTimestamp.toString()),
+        meanRewardPerSlot:  Number(giftConfig.meanRewardPerSlot.toString()),
+        randomPercent:  Number(giftConfig.randomPercent.toString()),
+        remainingReward:  Number(giftConfig.remainingReward.toString()),
+        remainingSlots:  Number(giftConfig.remainingSlots.toString()),
+        rewardToken: giftConfig.rewardToken,
+        totalReward: Number(giftConfig.totalReward.toString()),
+        totalSlots: Number(giftConfig.totalSlots.toString()),
+      }
     } catch (error) {
       throw new Error(error as unknown as string)      
     }
   }
 
-  async getInsertedSlot(params: GetInsertedSlotParams){
+  async getInsertedSlot(params: GetInsertedSlotParams): Promise<InsertedSlotRepsonse>{
     const { giftContractAddress, recipientAddress } = params
     try {
       const giftContract = new ethers.Contract(giftContractAddress , GIFT_ABI['COIN98_GIFT_CONTRACT_ADDRESS'], this.signer)
-      const giftConfig = await giftContract.connect(this.signer).getInsertedSlot(recipientAddress)
-      return giftConfig
+      const slotConfig = await giftContract.connect(this.signer).getInsertedSlot(recipientAddress)
+
+      return {
+        isClaimed: slotConfig.isClaimed,
+        isInserted: slotConfig.isInserted,
+        reward: Number(slotConfig.reward.toString()),
+        slotNumber: Number(slotConfig.slotNumber.toString()),
+      }
     } catch (error) {
       throw new Error(error as unknown as string)
     }
