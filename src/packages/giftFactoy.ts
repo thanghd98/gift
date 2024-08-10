@@ -25,12 +25,24 @@ export class GiftFactory extends GiftCore{
         endTimestamp
       }
 
+      const signer = this.createSigner(wallet)
+      if(!rewardToken.address){
+        const responseGift = await this.sponsorGasContract.createGifts({
+          signer,
+          giftContractAddress: this.contractAddress,
+          inputConfig: {
+            ...inputConfig,
+            rewardToken: ethers.constants.AddressZero,
+          },
+          feeToken: ethers.constants.AddressZero
+        })
+
+        return responseGift
+      }
+
       // const feeConfig = await this.contract.getFee(ethers.constants.AddressZero);
       // const feeAmount = (BigInt(inputConfig.totalReward.toString()) * BigInt(feeConfig.percentAmount)) / BigInt(10000);
       // const totalRewards = BigInt(inputConfig.totalReward.toString());
-
-      const signer = this.createSigner(wallet)
-
       const tokenContract = new Contract(rewardToken.address as string, ERC20ABI, signer)
       const nonce = await this.getNonceAccount(signer.address)
       const response = await tokenContract.approve(this.contractAddress,String(convertBalanceToWei(totalReward.toString(), rewardToken.decimal)),{
@@ -52,15 +64,23 @@ export class GiftFactory extends GiftCore{
   }
 
   async claimGift(params: ClaimRewardParams): Promise<ClaimRewardRespone>{
+    const { wallet, giftContractAddress } = params
+
+    const slotInfo = await this.getInsertedSlot({
+      giftContractAddress: giftContractAddress,
+      recipientAddress: wallet?.address
+    })
     const response = await this.sponsorGasContract.claimReward(params)
 
-    return response
+    return {...response, amount: slotInfo.reward}
   }
 
   async withdrawRemainingReward(params: WithdrawRewardParams): Promise<WithdrawGiftRespone>{
+    const giftInfo = await this.getGiftConfig(params.giftContractAddress)
+
     const response = await this.sponsorGasContract.withdrawRemainingReward(params)
 
-    return response
+    return {...response, amount: giftInfo.remainingReward}
   }
 
   async submitRewardRecipient(recipcient: string, giftContractAddress: string): Promise<string>{

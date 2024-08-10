@@ -6,7 +6,7 @@ export interface CreateGiftsParams {
     rewardToken: Partial<TokenInfo>,
     totalReward: number | bigint,
     totalSlots: number | bigint,
-    randomPercent: | bigint,
+    randomPercent: number| bigint,
     endTimestamp: number | bigint,
     baseMultiplier?: | bigint
 }
@@ -38,7 +38,7 @@ interface BaseRewardParams{
 export interface ClaimRewardParams  extends BaseRewardParams{ }
 
 
-export interface WithdrawRewardParams extends BaseRewardParams{}
+export interface WithdrawRewardParams extends BaseRewardParams{ }
 
 interface BaseRewardRespone{
     transactionHash: string

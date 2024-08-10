@@ -1,3 +1,4 @@
+import { ethers } from "ethers";
 import { CONTRACT_NAME } from "../constants";
 import { ClaimRewardParams, ClaimRewardRespone, CreateGiftRespone, GasSponsorCreateGiftsParams, WithdrawGiftRespone, WithdrawRewardParams } from "../types";
 import { GiftCore } from "./giftCore";
@@ -9,15 +10,24 @@ export class GasSponsor extends GiftCore {
 
     async createGifts(params: GasSponsorCreateGiftsParams): Promise<CreateGiftRespone>{
         const { inputConfig, feeToken, giftContractAddress, signer} = params
+        const isNative =  inputConfig.rewardToken === ethers.constants.AddressZero
         
         try {
             const nonce = await this.getNonceAccount(signer.address)
             const response = await this.contract.connect(signer).createGift(giftContractAddress, inputConfig, feeToken,{
                 gasLimit: 650000,
-                nonce: nonce
+                nonce: nonce,
+                value: isNative ?  BigInt(inputConfig.totalReward) :  BigInt(0)
             });
 
             const { transactionHash ,events } = await response.wait()
+
+            if(isNative){
+                return {
+                    contractAddress: events[0]?.address,
+                    transactionHash
+                }
+            }
 
             const transferEvent = events?.find((e: { event: string }) => e.event === "Transfer")
             const contractAddress = transferEvent?.args['to']
@@ -43,12 +53,9 @@ export class GasSponsor extends GiftCore {
                 nonce
             })
 
-            const { transactionHash , events } = await response.wait()
+            const { transactionHash  } = await response.wait()
 
-            const transferEvent = events?.find((e: { event: string }) => e.event === "Transfer")
-            const amount = Number(transferEvent?.args['amount'])
-
-            return {transactionHash, amount}
+            return {transactionHash, amount: 0}
         } catch (error) {
             throw new Error(error as unknown as string)   
         }
@@ -62,14 +69,12 @@ export class GasSponsor extends GiftCore {
 
             const response = await this.contract.connect(owner).withdrawRemainingReward(giftContractAddress,{
                 gasLimit: 650000,
-                nonce
+                nonce,
             })
 
-            const { transactionHash , events } = await response.wait()
-            const transferEvent = events?.find((e: { event: string }) => e.event === "Transfer")
-            const amount = Number(transferEvent?.args['amount'])
+            const { transactionHash } = await response.wait()
 
-            return {transactionHash, amount}
+            return {transactionHash, amount: 0}
 
         } catch (error) {
             throw new Error(error as unknown as string)
