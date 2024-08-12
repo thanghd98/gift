@@ -4,8 +4,9 @@ import { ClaimRewardParams, ClaimRewardRespone, CreateGiftRespone, GasSponsorCre
 import { GiftCore } from "./giftCore";
 
 export class GasSponsor extends GiftCore {
-    constructor(){
-        super(CONTRACT_NAME.GAS_SPONSOR_CONTRACT_ADDRESS)
+    constructor(privateKey?: string){
+        super(CONTRACT_NAME.GAS_SPONSOR_CONTRACT_ADDRESS, privateKey)
+        
     }
 
     async createGifts(params: GasSponsorCreateGiftsParams): Promise<CreateGiftRespone>{
@@ -20,7 +21,7 @@ export class GasSponsor extends GiftCore {
                 value: isNative ?  BigInt(inputConfig.totalReward) :  BigInt(0)
             });
 
-            const { transactionHash ,events } = await response.wait()
+            const { transactionHash , events } = await response.wait()
 
             if(isNative){
                 return {

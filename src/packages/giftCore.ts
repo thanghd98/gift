@@ -1,18 +1,19 @@
 import type { Wallet } from "@wallet/core"
 import { Contract, ethers, providers, Wallet as EthersWallet } from "ethers"
-import { CHAIN_ID, CONTRACT_NAME, GIFT_ABI, GIFT_CONTRACT, PRIVATE_KEY, RPC_URL } from "../constants"
+import { CHAIN_ID, CONTRACT_NAME, GIFT_ABI, GIFT_CONTRACT, RPC_URL } from "../constants"
 
 export class GiftCore{
     provider: ethers.providers.JsonRpcProvider
     contract: Contract
-    signer: ethers.Wallet
+    admin: ethers.Wallet
     contractAddress: string
+    static instance: GiftCore;
 
-    constructor(contractName: CONTRACT_NAME){
+    constructor(contractName: CONTRACT_NAME, privateKey?: string){
         this.contractAddress = GIFT_CONTRACT[contractName]
         this.provider = new providers.JsonRpcProvider(RPC_URL, CHAIN_ID);
-        this.signer =new EthersWallet(PRIVATE_KEY, this.provider)
-        this.contract = new Contract(GIFT_CONTRACT[contractName], GIFT_ABI[contractName], this.signer)
+        this.admin =new EthersWallet(privateKey as string, this.provider)
+        this.contract = new Contract(GIFT_CONTRACT[contractName], GIFT_ABI[contractName], this.admin)
     }
 
     async getNonceAccount(address: string): Promise<number>{

@@ -8,9 +8,9 @@ import { GiftCore } from "./giftCore";
 export class GiftFactory extends GiftCore{
   sponsorGasContract: GasSponsor
 
-  constructor(){
-    super(CONTRACT_NAME.COIN98_GIFT_FACTORY_CONTRACT_ADDRESS)
-    this.sponsorGasContract = new GasSponsor()
+  constructor(privateKey: string){
+    super(CONTRACT_NAME.COIN98_GIFT_FACTORY_CONTRACT_ADDRESS, privateKey)
+    this.sponsorGasContract = new GasSponsor(privateKey)
   }
 
   async createGifts(params: CreateGiftsParams): Promise<CreateGiftRespone>{
@@ -85,9 +85,9 @@ export class GiftFactory extends GiftCore{
 
   async submitRewardRecipient(recipcient: string, giftContractAddress: string): Promise<string>{
     try {
-      const giftContract = new ethers.Contract(giftContractAddress , GIFT_ABI['COIN98_GIFT_CONTRACT_ADDRESS'], this.signer )
+      const giftContract = new ethers.Contract(giftContractAddress , GIFT_ABI['COIN98_GIFT_CONTRACT_ADDRESS'], this.admin )
 
-      const { hash } = await giftContract.connect(this.signer).submitRewardRecipient(recipcient,{
+      const { hash } = await giftContract.connect(this.admin).submitRewardRecipient(recipcient,{
         gasLimit: 650000
       })
 
@@ -108,13 +108,13 @@ export class GiftFactory extends GiftCore{
   }
 
   async setFee( params: SetFee ): Promise<string>{
-    const { tokenAddress = ethers.constants.AddressZero, isActivated = true, percentAmount = 0, feeRecipient = this.signer.address } = params
+    const { tokenAddress = ethers.constants.AddressZero, isActivated = true, percentAmount = 0, feeRecipient = this.admin.address } = params
     try {
       const unlockSetFee = await this.unlockFunction('setFee');
       
       if(unlockSetFee){
-        const nonce = await this.getNonceAccount(this.signer.address)
-        const response = await this.contract.connect(this.signer).setFee(tokenAddress, {
+        const nonce = await this.getNonceAccount(this.admin.address)
+        const response = await this.contract.connect(this.admin).setFee(tokenAddress, {
           isActivated,
           percentAmount: BigInt(percentAmount),
           feeRecipient: feeRecipient
@@ -138,7 +138,7 @@ export class GiftFactory extends GiftCore{
       const unlockAdmin = await this.unlockFunction('setAdmin');
       
       if(unlockAdmin){
-        const nonce = await this.getNonceAccount(this.signer.address)
+        const nonce = await this.getNonceAccount(this.admin.address)
 
         const response = await this.contract.setAdmin(address, true,{
           gasLimit: 210000,
@@ -166,8 +166,8 @@ export class GiftFactory extends GiftCore{
 
   async getGiftConfig(giftContractAddress: string): Promise<GiftConfigResponse>{
     try {
-      const giftContract = new ethers.Contract(giftContractAddress , GIFT_ABI['COIN98_GIFT_CONTRACT_ADDRESS'], this.signer)
-      const giftConfig = await giftContract.connect(this.signer).getGiftConfig()
+      const giftContract = new ethers.Contract(giftContractAddress , GIFT_ABI['COIN98_GIFT_CONTRACT_ADDRESS'], this.admin)
+      const giftConfig = await giftContract.connect(this.admin).getGiftConfig()
 
       return {
         baseMultiplier: Number(giftConfig.baseMultiplier.toString()),
@@ -188,8 +188,8 @@ export class GiftFactory extends GiftCore{
   async getInsertedSlot(params: GetInsertedSlotParams): Promise<InsertedSlotRepsonse>{
     const { giftContractAddress, recipientAddress } = params
     try {
-      const giftContract = new ethers.Contract(giftContractAddress , GIFT_ABI['COIN98_GIFT_CONTRACT_ADDRESS'], this.signer)
-      const slotConfig = await giftContract.connect(this.signer).getInsertedSlot(recipientAddress)
+      const giftContract = new ethers.Contract(giftContractAddress , GIFT_ABI['COIN98_GIFT_CONTRACT_ADDRESS'], this.admin)
+      const slotConfig = await giftContract.connect(this.admin).getInsertedSlot(recipientAddress)
 
       return {
         isClaimed: slotConfig.isClaimed,
@@ -204,7 +204,7 @@ export class GiftFactory extends GiftCore{
 
   async unlockFunction(functionName: string): Promise<string>{
     try {
-      const nonce = await this.getNonceAccount(this.signer.address)
+      const nonce = await this.getNonceAccount(this.admin.address)
       
       const response = await this.contract.unlock(this.contract.interface.getSighash(functionName),{
         gasLimit: 210000,
