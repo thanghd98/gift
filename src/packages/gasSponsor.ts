@@ -4,8 +4,8 @@ import { ClaimRewardParams, ClaimRewardRespone, CreateGiftRespone, GasSponsorCre
 import { GiftCore } from "./giftCore";
 
 export class GasSponsor extends GiftCore {
-    constructor(privateKey?: string){
-        super(CONTRACT_NAME.GAS_SPONSOR_CONTRACT_ADDRESS, privateKey)
+    constructor(privateKey?: string, isDev?: boolean){
+        super(CONTRACT_NAME.GAS_SPONSOR_CONTRACT_ADDRESS, privateKey, isDev)
         
     }
 
