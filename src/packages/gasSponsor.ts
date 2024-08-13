@@ -98,7 +98,7 @@ export class GasSponsor extends GiftCore {
 
             return {
                 from: signer.address,
-                to: giftContractAddress,
+                to: this.contractAddress,
                 data,
                 value: isNative ?  BigInt(inputConfig.totalReward).toString() :  BigInt(0).toString()
             }
@@ -115,11 +115,10 @@ export class GasSponsor extends GiftCore {
             let iface = new ethers.utils.Interface(this.abi);  
                 
             const data = iface.encodeFunctionData("claimReward", [giftContractAddress])
-            console.log("🚀 ~ GasSponsor ~ getRawDataClaimGift ~ data:", data)
 
             return {
                 from: wallet?.address,
-                to: giftContractAddress,
+                to: this.contractAddress,
                 data,
             }
         } catch (error) {
@@ -137,7 +136,7 @@ export class GasSponsor extends GiftCore {
 
             return {
                 from: wallet?.address,
-                to: giftContractAddress,
+                to: this.contractAddress,
                 data,
             }
         } catch (error) {
