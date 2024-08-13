@@ -97,7 +97,7 @@ export class GasSponsor extends GiftCore {
             const data = iface.encodeFunctionData("createGift", [giftContractAddress, Object.values(inputConfig), feeToken])
 
             return {
-                from: signer.publicKey,
+                from: signer.address,
                 to: giftContractAddress,
                 data,
                 value: isNative ?  BigInt(inputConfig.totalReward).toString() :  BigInt(0).toString()
