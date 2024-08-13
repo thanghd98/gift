@@ -120,6 +120,7 @@ export class GasSponsor extends GiftCore {
                 from: wallet?.address,
                 to: this.contractAddress,
                 data,
+                value: '0x0'
             }
         } catch (error) {
             throw new Error(error as unknown as string)   
@@ -138,6 +139,7 @@ export class GasSponsor extends GiftCore {
                 from: wallet?.address,
                 to: this.contractAddress,
                 data,
+                value: '0x0'
             }
         } catch (error) {
             throw new Error(error as unknown as string)   
