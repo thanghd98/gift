@@ -1,3 +1,4 @@
+import { TokenInfo } from "@wallet/core";
 import { Contract, ethers } from "ethers";
 import { getGiftReward, getInsertedSlotReward } from "../api";
 import { CONTRACT_NAME, ERC20ABI, GIFT_ABI } from '../constants'
@@ -51,12 +52,7 @@ export class GiftFactory extends GiftCore{
         return responseGift as CreateGiftRespone
       }
 
-      const tokenContract = new Contract(rewardToken.address as string, ERC20ABI, signer)
-      const nonce = await this.getNonceAccount(signer.address)
-      const response = await tokenContract.approve(this.contractAddress,String(convertBalanceToWei(totalReward.toString(), rewardToken.decimal)),{
-        nonce
-      })
-      await response.wait()
+      // await this.approveToken(rewardToken as TokenInfo, signer, totalReward.toString())
 
       const responseGift = await this.sponsorGasContract?.createGifts({
         signer,
@@ -102,6 +98,8 @@ export class GiftFactory extends GiftCore{
 
         return responseGiftRawData as RawData
       }
+
+      this.approveToken(rewardToken as TokenInfo, signer, totalReward.toString())
 
       const responseGiftRawData = this.sponsorGasContract?.getRawDataCreateGift({
         signer,
@@ -283,5 +281,16 @@ export class GiftFactory extends GiftCore{
     } catch (error) {
       throw new Error(error as unknown as string)
     }
+  }
+
+  async approveToken(token:TokenInfo, signer: ethers.Wallet, amount: string){
+      const tokenContract = new Contract(token.address as string, ERC20ABI, signer)
+      const nonce = await this.getNonceAccount(signer.address)
+      const response = await tokenContract.approve(this.contractAddress,String(convertBalanceToWei(amount, token.decimal)),{
+        nonce
+      })
+      const {transactionHash} = await response.wait()
+      
+      return transactionHash
   }
 }
