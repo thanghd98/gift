@@ -8,11 +8,13 @@ export interface CreateGiftsParams {
     totalSlots: number | bigint,
     randomPercent: number| bigint,
     endTimestamp: number | bigint,
-    baseMultiplier?: | bigint
+    baseMultiplier?: number | bigint
+    gasPrice?: number,
+    gasLimit?: number
 }
 
 
-export interface InputConfig extends Omit<CreateGiftsParams, 'wallet' | 'rewardToken' >{
+export interface InputConfig extends Omit<CreateGiftsParams, 'wallet' | 'rewardToken' | 'gasPrice' | 'gasLimit' >{
     rewardToken: string
 }
 export interface GasSponsorCreateGiftsParams {
@@ -21,6 +23,8 @@ export interface GasSponsorCreateGiftsParams {
    inputConfig: InputConfig,
    feeToken: string,
    nonce?: number | string,
+   gasPrice?: number,
+   gasLimit?: number
 }
 
 export interface SetFee {
@@ -31,6 +35,8 @@ export interface SetFee {
 }
 
 interface BaseRewardParams{
+    gasPrice: number,
+    gasLimit: number
     wallet: Wallet,
     giftContractAddress: string
 }
@@ -78,4 +84,11 @@ export interface InsertedSlotRepsonse{
     isInserted: boolean,
     reward: number,
     slotNumber: number
+}
+
+export interface RawData{
+    from: string,
+    to: string,
+    data: string,
+    value?: string
 }

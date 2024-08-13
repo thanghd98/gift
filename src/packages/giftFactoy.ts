@@ -1,17 +1,16 @@
 import { Contract, ethers } from "ethers";
 import { getGiftReward, getInsertedSlotReward } from "../api";
 import { CONTRACT_NAME, ERC20ABI, GIFT_ABI } from '../constants'
-import { ClaimRewardParams, ClaimRewardRespone, CreateGiftRespone, CreateGiftsParams, GetInsertedSlotParams, GiftConfigResponse, GiftFactoryEngine, InsertedSlotRepsonse, SetFee, WithdrawGiftRespone, WithdrawRewardParams } from "../types";
+import { ClaimRewardParams, ClaimRewardRespone, CreateGiftRespone, CreateGiftsParams, GetInsertedSlotParams, GiftConfigResponse, GiftFactoryEngine, InsertedSlotRepsonse, RawData, SetFee, WithdrawGiftRespone, WithdrawRewardParams } from "../types";
 import { convertBalanceToWei } from "../utils";
 import { GasSponsor } from "./gasSponsor";
 import { GiftCore } from "./giftCore";
 
 export class GiftFactory extends GiftCore{
   static instance: GiftFactory
-  private sponsorGasContract?: GasSponsor
+  sponsorGasContract?: GasSponsor
 
   constructor(params: GiftFactoryEngine){
-
     if(GiftFactory.instance){
       return GiftFactory.instance
     }
@@ -22,9 +21,9 @@ export class GiftFactory extends GiftCore{
     
     GiftFactory.instance = this
   }
-
+  
   async createGifts(params: CreateGiftsParams): Promise<CreateGiftRespone>{
-    const {wallet, rewardToken, totalReward, totalSlots, randomPercent, endTimestamp , baseMultiplier = 1} = params
+    const {wallet, rewardToken, totalReward, totalSlots, randomPercent, endTimestamp , baseMultiplier = 1, gasLimit, gasPrice} = params
     try {
       const inputConfig = {
         rewardToken: rewardToken.address as string,
@@ -44,7 +43,9 @@ export class GiftFactory extends GiftCore{
             ...inputConfig,
             rewardToken: ethers.constants.AddressZero,
           },
-          feeToken: ethers.constants.AddressZero
+          feeToken: ethers.constants.AddressZero,
+          gasPrice,
+          gasLimit
         })
 
         return responseGift as CreateGiftRespone
@@ -61,10 +62,55 @@ export class GiftFactory extends GiftCore{
         signer,
         giftContractAddress: this.contractAddress,
         inputConfig,
-        feeToken: ethers.constants.AddressZero
+        feeToken: ethers.constants.AddressZero,
+        gasLimit,
+        gasPrice
       })
 
       return responseGift as CreateGiftRespone
+    } catch (error) {
+      throw new Error(error as unknown as string)
+    }
+  }
+
+  getRawDataCreateGift(params: CreateGiftsParams): RawData{
+    const {wallet, rewardToken, totalReward, totalSlots, randomPercent, endTimestamp , baseMultiplier = 1} = params
+
+    try {
+      const inputConfig = {
+        rewardToken: rewardToken.address as string,
+        totalReward: BigInt(convertBalanceToWei(totalReward.toString(), rewardToken.decimal as number)),
+        totalSlots: BigInt(totalSlots),
+        randomPercent: BigInt(randomPercent),
+        baseMultiplier: BigInt(baseMultiplier),
+        endTimestamp
+      }
+
+      const signer = this.createSigner(wallet)
+
+
+      if(!rewardToken.address){
+        const responseGiftRawData = this.sponsorGasContract?.getRawDataCreateGift({
+          signer,
+          giftContractAddress: this.contractAddress,
+          inputConfig: {
+            ...inputConfig,
+            rewardToken: ethers.constants.AddressZero,
+          },
+          feeToken: ethers.constants.AddressZero,
+        })
+
+        return responseGiftRawData as RawData
+      }
+
+      const responseGiftRawData = this.sponsorGasContract?.getRawDataCreateGift({
+        signer,
+        giftContractAddress: this.contractAddress,
+        inputConfig,
+        feeToken: ethers.constants.AddressZero,
+      })
+
+      return responseGiftRawData as RawData
     } catch (error) {
       throw new Error(error as unknown as string)
     }
@@ -84,12 +130,24 @@ export class GiftFactory extends GiftCore{
     return {...response, amount: reward} as ClaimRewardRespone
   }
 
+  getRawDataClaimGift(params: ClaimRewardParams): RawData{
+    const response =  this.sponsorGasContract?.getRawDataClaimGift(params)
+
+    return response as RawData
+  }
+
   async withdrawRemainingReward(params: WithdrawRewardParams): Promise<WithdrawGiftRespone>{
     const giftReward = await getGiftReward(params.giftContractAddress)
 
     const response = await this.sponsorGasContract?.withdrawRemainingReward(params)
 
     return {...response, amount: giftReward} as WithdrawGiftRespone
+  }
+
+  getRawDataWithdrawReward(params: ClaimRewardParams): RawData{
+    const response =  this.sponsorGasContract?.getRawDataWithdrawReward(params)
+
+    return response as RawData
   }
 
   async submitRewardRecipient(recipcient: string, giftContractAddress: string): Promise<string>{
