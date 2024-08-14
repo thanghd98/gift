@@ -79,7 +79,7 @@ export class GiftFactory extends GiftCore{
         totalSlots: BigInt(totalSlots),
         randomPercent: BigInt(randomPercent),
         baseMultiplier: BigInt(baseMultiplier),
-        endTimestamp
+        endTimestamp: Math.floor(Date.now() / 1000) + Number(endTimestamp),
       }
 
       const signer = this.createSigner(wallet)
@@ -152,11 +152,13 @@ export class GiftFactory extends GiftCore{
     try {
       const giftContract = new ethers.Contract(giftContractAddress , GIFT_ABI['COIN98_GIFT_CONTRACT_ADDRESS'], this.admin )
 
-      const { hash } = await giftContract.connect(this.admin).submitRewardRecipient(recipcient,{
+      const response = await giftContract.connect(this.admin).submitRewardRecipient(recipcient,{
         gasLimit: 650000
       })
 
-      return hash
+      const { transactionHash } = await response.wait()
+
+      return transactionHash
     } catch (error) {
       throw new Error(error as unknown as string)
     }
