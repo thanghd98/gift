@@ -91,7 +91,7 @@ export class GasSponsor extends GiftCore {
         const isNative =  inputConfig.rewardToken === ethers.constants.AddressZero
 
         try {
-            let iface = new ethers.utils.Interface(this.abi);  
+            let iface = new ethers.utils.Interface(this.abi as any);  
     
             const data = iface.encodeFunctionData("createGift", [giftContractAddress, Object.values(inputConfig), feeToken])
 
@@ -110,7 +110,7 @@ export class GasSponsor extends GiftCore {
     getRawDataClaimGift(params: ClaimRewardParams): RawData{
         const{ giftContractAddress, wallet} = params
         try {
-            let iface = new ethers.utils.Interface(this.abi);  
+            let iface = new ethers.utils.Interface(this.abi as any);  
                 
             const data = iface.encodeFunctionData("claimReward", [giftContractAddress])
 
@@ -128,7 +128,7 @@ export class GasSponsor extends GiftCore {
     getRawDataWithdrawReward(params: WithdrawRewardParams): RawData{
         const { wallet, giftContractAddress } = params
         try {
-            let iface = new ethers.utils.Interface(this.abi);  
+            let iface = new ethers.utils.Interface(this.abi as any);  
                 
             const data = iface.encodeFunctionData("withdrawRemainingReward", [giftContractAddress])
 
