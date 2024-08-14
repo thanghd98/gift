@@ -1,13 +1,18 @@
+import { URL_REQUEST } from "../constants";
 import { GetInsertedSlotParams } from "../types";
 
-const URL = 'https://superwallet-chat-api-stg.coin98.tech/adapters/lucky-gift'
+interface InsertedSlotParams extends  GetInsertedSlotParams{
+    code: string,
+    isDev: boolean
+}
 
-export const getInsertedSlotReward = async (params: GetInsertedSlotParams): Promise<number> => {
-    const { recipientAddress, giftContractAddress } = params
+export const getInsertedSlotReward = async (params: InsertedSlotParams): Promise<number> => {
+    const { recipientAddress, giftContractAddress, isDev, code} = params
+    const url = URL_REQUEST(isDev)
     try {
-        const request = await fetch(`${URL}/${giftContractAddress}/inserted-slot/${recipientAddress}`,{
+        const request = await fetch(`${url}/${giftContractAddress}/inserted-slot/${recipientAddress}`,{
             headers: {
-                apiKey: "dev_adapter9898"
+                apiKey: code
             }
         })
 
@@ -19,11 +24,12 @@ export const getInsertedSlotReward = async (params: GetInsertedSlotParams): Prom
     }
 }
 
-export const getGiftReward = async (giftContractAddress: string): Promise<number> => {
+export const getGiftReward = async (giftContractAddress: string, code: string, isDev: boolean): Promise<number> => {
+    const url = URL_REQUEST(isDev)
     try {
-        const request = await fetch(`${URL}/${giftContractAddress}/config`,{
+        const request = await fetch(`${url}/${giftContractAddress}/config`,{
             headers: {
-                apiKey: "dev_adapter9898"
+                apiKey: code
             }
         })
 

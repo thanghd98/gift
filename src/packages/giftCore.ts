@@ -1,7 +1,6 @@
 import type { Wallet } from "@wallet/core"
 import { Contract, ethers, providers, Wallet as EthersWallet } from "ethers"
 import { CHAIN_ID, CONTRACT_NAME, GIFT_ABI, GIFT_CONTRACT, RPC_URL } from "../constants"
-import { PRIVATE_KEY } from "../constants"
 
 export class GiftCore{
     protected provider: ethers.providers.JsonRpcProvider
@@ -14,7 +13,7 @@ export class GiftCore{
         this.contractAddress = GIFT_CONTRACT(contractName,isDev)
         this.abi = GIFT_ABI[contractName]
         this.provider = new providers.JsonRpcProvider(RPC_URL, CHAIN_ID);
-        this.admin =new EthersWallet(privateKey as string || PRIVATE_KEY, this.provider)
+        this.admin = privateKey ? new EthersWallet(privateKey as string, this.provider) : EthersWallet.createRandom()
         this.contract = new Contract(this.contractAddress, this.abi, this.admin)
     }
 

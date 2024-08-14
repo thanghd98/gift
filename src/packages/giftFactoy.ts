@@ -9,6 +9,8 @@ import { GiftCore } from "./giftCore";
 
 export class GiftFactory extends GiftCore{
   static instance: GiftFactory
+  private code?: string
+  private isDev?: boolean
   sponsorGasContract?: GasSponsor
 
   constructor(params: GiftFactoryEngine){
@@ -18,6 +20,8 @@ export class GiftFactory extends GiftCore{
 
     super(CONTRACT_NAME.COIN98_GIFT_FACTORY_CONTRACT_ADDRESS, params?.privateKey, params.isDev)
 
+    this.code = params.code
+    this.isDev = params.isDev
     this.sponsorGasContract =  new GasSponsor(params?.privateKey ,params.isDev)
     
     GiftFactory.instance = this
@@ -117,10 +121,7 @@ export class GiftFactory extends GiftCore{
   async claimGift(params: ClaimRewardParams): Promise<ClaimRewardRespone>{
     const { wallet, giftContractAddress } = params
 
-    const reward = await  getInsertedSlotReward({
-      giftContractAddress,
-      recipientAddress: wallet?.address
-    })
+    const reward = await  getInsertedSlotReward({giftContractAddress,recipientAddress: wallet?.address, code: this.code as string, isDev: this.isDev as boolean })
 
 
     const response = await this.sponsorGasContract?.claimReward(params)
@@ -135,7 +136,7 @@ export class GiftFactory extends GiftCore{
   }
 
   async withdrawRemainingReward(params: WithdrawRewardParams): Promise<WithdrawGiftRespone>{
-    const giftReward = await getGiftReward(params.giftContractAddress)
+    const giftReward = await getGiftReward(params.giftContractAddress, this.code as string, this.isDev as boolean)
 
     const response = await this.sponsorGasContract?.withdrawRemainingReward(params)
 
