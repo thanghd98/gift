@@ -32,7 +32,7 @@ export class GiftFactory extends GiftCore{
         totalSlots: BigInt(totalSlots),
         randomPercent: BigInt(randomPercent),
         baseMultiplier: BigInt(baseMultiplier),
-        endTimestamp
+        endTimestamp:  Math.floor(Date.now() / 1000) + Number(endTimestamp),
       }
 
       const signer = this.createSigner(wallet)
