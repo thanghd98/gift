@@ -19,7 +19,7 @@ export class GiftCore{
 
     async getNonceAccount(address: string): Promise<number>{
         try {
-            const nonce = await this.provider.getTransactionCount(address, 'latest')
+            const nonce = await this.provider.getTransactionCount(address, 'pending')
 
             return nonce
         } catch (error) {
