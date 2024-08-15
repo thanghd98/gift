@@ -101,7 +101,7 @@ export class GiftFactory extends GiftCore{
         return responseGiftRawData as RawData
       }
 
-      this.approveToken(rewardToken as TokenInfo, wallet, totalReward.toString())
+      // this.approveToken(rewardToken as TokenInfo, wallet, totalReward.toString())
 
       const responseGiftRawData = this.sponsorGasContract?.getRawDataCreateGift({
         signer,

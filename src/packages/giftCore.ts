@@ -5,7 +5,7 @@ import { CHAIN_ID, CONTRACT_NAME, GIFT_ABI, GIFT_CONTRACT, RPC_URL } from "../co
 export class GiftCore{
     protected provider: ethers.providers.JsonRpcProvider
     protected contract: Contract
-    protected admin: ethers.Wallet
+    protected admin?: ethers.Wallet
     protected contractAddress: string
     protected abi: ethers.ContractInterface
 
@@ -13,7 +13,7 @@ export class GiftCore{
         this.contractAddress = GIFT_CONTRACT(contractName,isDev)
         this.abi = GIFT_ABI[contractName]
         this.provider = new providers.JsonRpcProvider(RPC_URL, CHAIN_ID);
-        this.admin = privateKey ? new EthersWallet(privateKey as string, this.provider) : EthersWallet.createRandom()
+        this.admin = privateKey ? new EthersWallet(privateKey as string, this.provider) : undefined
         this.contract = new Contract(this.contractAddress, this.abi, this.admin)
     }
 
