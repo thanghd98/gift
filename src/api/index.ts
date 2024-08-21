@@ -8,7 +8,7 @@ interface InsertedSlotParams extends  GetInsertedSlotParams{
 export const getInsertedSlotReward = async (params: InsertedSlotParams): Promise<number> => {
     const { recipientAddress, giftContractAddress, chatApiInstance} = params
     try {
-        const request = await chatApiInstance?.get(`/transactions/${giftContractAddress}/inserted-slot/${recipientAddress}`)
+        const request = await chatApiInstance?.get(`/transactions/lucky-gift/${giftContractAddress}/inserted-slot/${recipientAddress}`)
 
         const { data } =  request as AxiosResponse
         
@@ -20,7 +20,7 @@ export const getInsertedSlotReward = async (params: InsertedSlotParams): Promise
 
 export const getGiftReward = async (giftContractAddress: string, chatApiInstance: AxiosInstance): Promise<number> => {
     try {
-        const request = await chatApiInstance?.get(`/transactions/${giftContractAddress}/config`)
+        const request = await chatApiInstance?.get(`/transactions/lucky-gift/${giftContractAddress}/config`)
 
         const { data } = request
         
