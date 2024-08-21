@@ -1,5 +1,8 @@
+import { AxiosInstance } from "axios";
+
 export interface GiftFactoryEngine {
     privateKey?: string,
-    isDev: boolean
+    isDev: boolean,
+    chatApiInstance?: AxiosInstance
 }
   
