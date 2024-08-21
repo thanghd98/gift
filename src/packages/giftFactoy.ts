@@ -10,7 +10,6 @@ import { GiftCore } from "./giftCore";
 
 export class GiftFactory extends GiftCore{
   static instance: GiftFactory
-  private isDev?: boolean
   private chatApiInstance?: AxiosInstance
   sponsorGasContract?: GasSponsor
 
@@ -21,7 +20,6 @@ export class GiftFactory extends GiftCore{
 
     super(CONTRACT_NAME.COIN98_GIFT_FACTORY_CONTRACT_ADDRESS, params?.privateKey, params.isDev)
 
-    this.isDev = params.isDev
     this.sponsorGasContract =  new GasSponsor(params?.privateKey ,params.isDev)
     this.chatApiInstance = params.chatApiInstance
     
@@ -122,7 +120,7 @@ export class GiftFactory extends GiftCore{
   async claimGift(params: ClaimRewardParams): Promise<ClaimRewardRespone>{
     const { wallet, giftContractAddress } = params
 
-    const reward = await  getInsertedSlotReward({giftContractAddress,recipientAddress: wallet?.address, isDev: this.isDev as boolean, chatApiInstance: this.chatApiInstance })
+    const reward = await  getInsertedSlotReward({giftContractAddress,recipientAddress: wallet?.address, chatApiInstance: this.chatApiInstance })
 
 
     const response = await this.sponsorGasContract?.claimReward(params)
@@ -137,7 +135,7 @@ export class GiftFactory extends GiftCore{
   }
 
   async withdrawRemainingReward(params: WithdrawRewardParams): Promise<WithdrawGiftRespone>{
-    const giftReward = await getGiftReward(params.giftContractAddress, this.isDev as boolean, this.chatApiInstance as AxiosInstance)
+    const giftReward = await getGiftReward(params.giftContractAddress, this.chatApiInstance as AxiosInstance)
 
     const response = await this.sponsorGasContract?.withdrawRemainingReward(params)
 

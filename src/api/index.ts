@@ -1,17 +1,14 @@
 import { AxiosInstance, AxiosResponse } from "axios";
-import { URL_REQUEST } from "../constants";
 import { GetInsertedSlotParams } from "../types";
 
 interface InsertedSlotParams extends  GetInsertedSlotParams{
-    isDev: boolean,
     chatApiInstance?: AxiosInstance
 }
 
 export const getInsertedSlotReward = async (params: InsertedSlotParams): Promise<number> => {
-    const { recipientAddress, giftContractAddress, isDev, chatApiInstance} = params
-    const url = URL_REQUEST(isDev)
+    const { recipientAddress, giftContractAddress, chatApiInstance} = params
     try {
-        const request = await chatApiInstance?.get(`${url}/${giftContractAddress}/inserted-slot/${recipientAddress}`)
+        const request = await chatApiInstance?.get(`/transactions/${giftContractAddress}/inserted-slot/${recipientAddress}`)
 
         const { data } =  request as AxiosResponse
         
@@ -21,10 +18,9 @@ export const getInsertedSlotReward = async (params: InsertedSlotParams): Promise
     }
 }
 
-export const getGiftReward = async (giftContractAddress: string, isDev: boolean, chatApiInstance: AxiosInstance): Promise<number> => {
-    const url = URL_REQUEST(isDev)
+export const getGiftReward = async (giftContractAddress: string, chatApiInstance: AxiosInstance): Promise<number> => {
     try {
-        const request = await chatApiInstance?.get(`${url}/${giftContractAddress}/config`)
+        const request = await chatApiInstance?.get(`/transactions/${giftContractAddress}/config`)
 
         const { data } = request
         
