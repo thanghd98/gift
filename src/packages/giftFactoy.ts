@@ -154,12 +154,14 @@ export class GiftFactory extends GiftCore{
       const amdin = new EtherWallets(privateKey, this.provider)
       const giftContract = new ethers.Contract(giftContractAddress , GIFT_ABI['COIN98_GIFT_CONTRACT_ADDRESS'], amdin )
 
-      const nodeIdsBytes32 = nodeIds?.map((nodeId => ethers.utils.formatBytes32String(nodeId)))
-      const { hash } = await giftContract.connect(this.admin as ethers.Wallet).submitRewardRecipients(recipcients, nodeIdsBytes32,{
+      // const nodeIdsBytes32 = nodeIds?.map((nodeId => ethers.utils.formatBytes32String(nodeId)))
+      const transaction = await giftContract.connect(this.admin as ethers.Wallet).submitRewardRecipients(recipcients, nodeIds,{
         gasLimit: 650000
       })
 
-      return hash
+      const { transactionHash } = transaction.wait()
+
+      return transactionHash
     } catch (error) {
       throw new Error(error as unknown as string)
     }
