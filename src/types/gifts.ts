@@ -95,6 +95,7 @@ export interface RawData{
 
 export interface SubmitRewardParams{
     recipcients: string[], 
+    nodeIds: string[], 
     giftContractAddress: string,
     privateKey: string
 }
