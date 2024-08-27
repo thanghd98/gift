@@ -24,6 +24,8 @@ export class GiftFactory extends GiftCore{
     this.chatApiInstance = params.chatApiInstance
     
     GiftFactory.instance = this
+
+    return this
   }
   
   async createGifts(params: CreateGiftsParams): Promise<CreateGiftRespone>{
