@@ -1,9 +1,9 @@
 import { TokenInfo, Wallet } from "@wallet/core";
 import { AxiosInstance } from "axios";
-import { Contract, ethers } from "ethers";
+import { Contract, ethers, Wallet as EtherWallets } from "ethers";
 import { getGiftReward, getInsertedSlotReward } from "../api";
 import { CONTRACT_NAME, ERC20ABI, GIFT_ABI } from '../constants'
-import { ClaimRewardParams, ClaimRewardRespone, CreateGiftRespone, CreateGiftsParams, GetInsertedSlotParams, GiftConfigResponse, GiftFactoryEngine, InsertedSlotRepsonse, RawData, SetFee, WithdrawGiftRespone, WithdrawRewardParams } from "../types";
+import { ClaimRewardParams, ClaimRewardRespone, CreateGiftRespone, CreateGiftsParams, GetInsertedSlotParams, GiftConfigResponse, GiftFactoryEngine, InsertedSlotRepsonse, RawData, SetFee, SubmitRewardParams, WithdrawGiftRespone, WithdrawRewardParams } from "../types";
 import { convertBalanceToWei } from "../utils";
 import { GasSponsor } from "./gasSponsor";
 import { GiftCore } from "./giftCore";
@@ -148,17 +148,17 @@ export class GiftFactory extends GiftCore{
     return response as RawData
   }
 
-  async submitRewardRecipient(recipcient: string, giftContractAddress: string): Promise<string>{
+  async submitRewardRecipients(params: SubmitRewardParams): Promise<string>{
+    const { giftContractAddress, recipcients, privateKey }  = params
     try {
-      const giftContract = new ethers.Contract(giftContractAddress , GIFT_ABI['COIN98_GIFT_CONTRACT_ADDRESS'], this.admin )
+      const amdin = new EtherWallets(privateKey, this.provider)
+      const giftContract = new ethers.Contract(giftContractAddress , GIFT_ABI['COIN98_GIFT_CONTRACT_ADDRESS'], amdin )
 
-      const response = await giftContract.connect(this.admin as ethers.Wallet).submitRewardRecipient(recipcient,{
+      const { hash } = await giftContract.connect(this.admin as ethers.Wallet).submitRewardRecipients(recipcients,{
         gasLimit: 650000
       })
 
-      const { transactionHash } = await response.wait()
-
-      return transactionHash
+      return hash
     } catch (error) {
       throw new Error(error as unknown as string)
     }

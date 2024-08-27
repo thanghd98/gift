@@ -92,3 +92,9 @@ export interface RawData{
     data: string,
     value?: string
 }
+
+export interface SubmitRewardParams{
+    recipcients: string[], 
+    giftContractAddress: string,
+    privateKey: string
+}
