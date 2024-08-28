@@ -3,7 +3,7 @@ import { AxiosInstance } from "axios";
 import { Contract, ethers, Wallet as EtherWallets } from "ethers";
 import { getGiftReward, getInsertedSlotReward } from "../api";
 import { CONTRACT_NAME, ERC20ABI, GIFT_ABI } from '../constants'
-import { ClaimRewardParams, ClaimRewardRespone, CreateGiftRespone, CreateGiftsParams, GetInsertedSlotParams, GiftConfigResponse, GiftFactoryEngine, InsertedSlotRepsonse, RawData, SetFee, SubmitRewardParams, WithdrawGiftRespone, WithdrawRewardParams } from "../types";
+import { ClaimRewardParams, ClaimRewardRespone, CreateGiftRespone, CreateGiftsParams, GetInsertedSlotParams, GiftConfigResponse, GiftFactoryEngine, InsertedSlotRepsonse, RawData, SetFee, SetEndGiftParams, SubmitRewardParams, WithdrawGiftRespone, WithdrawRewardParams } from "../types";
 import { convertBalanceToWei } from "../utils";
 import { GasSponsor } from "./gasSponsor";
 import { GiftCore } from "./giftCore";
@@ -37,7 +37,8 @@ export class GiftFactory extends GiftCore{
         totalSlots: BigInt(totalSlots),
         randomPercent: BigInt(randomPercent),
         baseMultiplier: BigInt(baseMultiplier),
-        endTimestamp:  Math.floor(Date.now() / 1000) + Number(endTimestamp),
+        //expand time 5m
+        endTimestamp:  Math.floor(Date.now() / 1000) + Number(endTimestamp) + 300,
       }
 
       const signer = this.createSigner(wallet)
@@ -157,11 +158,11 @@ export class GiftFactory extends GiftCore{
       const giftContract = new ethers.Contract(giftContractAddress , GIFT_ABI['COIN98_GIFT_CONTRACT_ADDRESS'], amdin )
 
       // const nodeIdsBytes32 = nodeIds?.map((nodeId => ethers.utils.formatBytes32String(nodeId)))
-      const transaction = await giftContract.connect(this.admin as ethers.Wallet).submitRewardRecipients(recipcients, nodeIds,{
+      const transaction = await giftContract.connect(amdin as ethers.Wallet).submitRewardRecipients(recipcients, nodeIds,{
         gasLimit: 650000
       })
 
-      const { transactionHash } = transaction.wait()
+      const { transactionHash } = await transaction.wait()
 
       return transactionHash
     } catch (error) {
@@ -308,5 +309,24 @@ export class GiftFactory extends GiftCore{
       const {transactionHash} = await response.wait()
       
       return transactionHash
+  }
+
+  async endGift(params: SetEndGiftParams){
+    const { giftContractAddress, privateKey } = params
+    try {
+      const amdin = new EtherWallets(privateKey, this.provider)
+      const giftContract = new ethers.Contract(giftContractAddress , GIFT_ABI['COIN98_GIFT_CONTRACT_ADDRESS'], amdin )
+
+      // const nodeIdsBytes32 = nodeIds?.map((nodeId => ethers.utils.formatBytes32String(nodeId)))
+      const transaction = await giftContract.connect(amdin as ethers.Wallet).endGift({
+        gasLimit: 650000
+      })
+
+      const { transactionHash } = await transaction.wait()
+
+      return transactionHash
+    } catch (error) {
+      throw new Error(error as unknown as string)
+    }
   }
 }

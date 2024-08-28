@@ -99,3 +99,8 @@ export interface SubmitRewardParams{
     giftContractAddress: string,
     privateKey: string
 }
+
+export interface SetEndGiftParams{
+    giftContractAddress: string,
+    privateKey: string
+}
