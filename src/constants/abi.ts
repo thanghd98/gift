@@ -846,6 +846,13 @@ export const COIN98_GIFT_V2_ABI = [
   },
   {
     "inputs": [],
+    "name": "endGift",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "factory",
     "outputs": [
       {
