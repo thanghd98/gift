@@ -35,7 +35,7 @@ export class GiftFactory extends GiftCore{
         rewardToken: rewardToken.address as string,
         totalReward: BigInt(convertBalanceToWei(totalReward.toString(), rewardToken.decimal as number)),
         totalSlots: BigInt(totalSlots),
-        randomPercent: BigInt(randomPercent),
+        randomPercent: BigInt(Number(randomPercent) * 100),
         baseMultiplier: BigInt(baseMultiplier),
         //expand time 5m
         endTimestamp:  Math.floor(Date.now() / 1000) + Number(endTimestamp),
