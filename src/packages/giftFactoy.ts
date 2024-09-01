@@ -33,7 +33,7 @@ export class GiftFactory extends GiftCore{
     try {
       const inputConfig = {
         rewardToken: rewardToken.address as string,
-        totalReward: BigInt(convertBalanceToWei(totalReward.toString(), rewardToken.decimal as number)),
+        totalReward: BigInt(convertBalanceToWei(totalReward.toString(), rewardToken.decimal || rewardToken.decimals as number)),
         totalSlots: BigInt(totalSlots),
         randomPercent: BigInt(Number(randomPercent) * 100),
         baseMultiplier: BigInt(baseMultiplier),
@@ -81,7 +81,7 @@ export class GiftFactory extends GiftCore{
     try {
       const inputConfig = {
         rewardToken: rewardToken.address as string,
-        totalReward: BigInt(convertBalanceToWei(totalReward.toString(), rewardToken.decimal as number)),
+        totalReward: BigInt(convertBalanceToWei(totalReward.toString(), rewardToken?.decimal || rewardToken?.decimals  as number)),
         totalSlots: BigInt(totalSlots),
         randomPercent: BigInt(randomPercent),
         baseMultiplier: BigInt(baseMultiplier),
