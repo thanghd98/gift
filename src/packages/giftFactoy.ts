@@ -31,9 +31,11 @@ export class GiftFactory extends GiftCore{
   async createGifts(params: CreateGiftsParams): Promise<CreateGiftRespone>{
     const {wallet, rewardToken, totalReward, totalSlots, randomPercent, endTimestamp , baseMultiplier = 1, gasLimit, gasPrice} = params
     try {
+      //@ts-expect-error
+      const decimal = rewardToken.decimal || rewardToken.decimals || rewardToken?.info?.decimals || rewardToken?.info?.decimal
       const inputConfig = {
         rewardToken: rewardToken.address as string,
-        totalReward: BigInt(convertBalanceToWei(totalReward.toString(), rewardToken.decimal || rewardToken.decimals as number)),
+        totalReward: BigInt(convertBalanceToWei(totalReward.toString(),decimal)),
         totalSlots: BigInt(totalSlots),
         randomPercent: BigInt(Number(randomPercent) * 100),
         baseMultiplier: BigInt(baseMultiplier),
@@ -79,9 +81,12 @@ export class GiftFactory extends GiftCore{
     const {wallet, rewardToken, totalReward, totalSlots, randomPercent, endTimestamp , baseMultiplier = 1} = params
 
     try {
+      //@ts-expect-error
+      const decimal = rewardToken.decimal || rewardToken.decimals || rewardToken?.info?.decimals || rewardToken?.info?.decimal
+
       const inputConfig = {
         rewardToken: rewardToken.address as string,
-        totalReward: BigInt(convertBalanceToWei(totalReward.toString(), rewardToken?.decimal || rewardToken?.decimals  as number)),
+        totalReward: BigInt(convertBalanceToWei(totalReward.toString(), decimal)),
         totalSlots: BigInt(totalSlots),
         randomPercent: BigInt(randomPercent),
         baseMultiplier: BigInt(baseMultiplier),
