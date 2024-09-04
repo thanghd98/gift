@@ -164,7 +164,7 @@ export class GiftFactory extends GiftCore{
 
       // const nodeIdsBytes32 = nodeIds?.map((nodeId => ethers.utils.formatBytes32String(nodeId)))
       const transaction = await giftContract.connect(amdin as ethers.Wallet).submitRewardRecipients(recipcients, nodeIds,{
-        gasLimit: 650000
+        gasLimit: 65000000
       })
 
       const { transactionHash } = await transaction.wait()
