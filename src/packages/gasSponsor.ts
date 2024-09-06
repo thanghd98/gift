@@ -108,11 +108,11 @@ export class GasSponsor extends GiftCore {
   
 
     getRawDataClaimGift(params: ClaimRewardParams): RawData{
-        const{ giftContractAddress, wallet} = params
+        const{ giftContractAddress, wallet, nodeId} = params
         try {
             let iface = new ethers.utils.Interface(this.abi as any);  
                 
-            const data = iface.encodeFunctionData("claimReward", [giftContractAddress])
+            const data = iface.encodeFunctionData("claimReward", [giftContractAddress, nodeId])
 
             return {
                 from: wallet?.address,
