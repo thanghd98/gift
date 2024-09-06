@@ -1,6 +1,7 @@
 import { TokenInfo, Wallet } from "@wallet/core";
 import { AxiosInstance } from "axios";
 import { Contract, ethers, Wallet as EtherWallets } from "ethers";
+import { getGiftReward, getInsertedSlotReward } from "../api";
 import { CONTRACT_NAME, ERC20ABI, GIFT_ABI } from '../constants'
 import { ClaimRewardParams, ClaimRewardRespone, CreateGiftRespone, CreateGiftsParams, GetInsertedSlotParams, GiftConfigResponse, GiftFactoryEngine, InsertedSlotRepsonse, RawData, SetFee, SubmitRewardParams, WithdrawGiftRespone, WithdrawRewardParams } from "../types";
 import { convertBalanceToWei } from "../utils";
@@ -9,7 +10,6 @@ import { GiftCore } from "./giftCore";
 
 export class GiftFactory extends GiftCore{
   static instance: GiftFactory
-  //@ts-expect-error
   private chatApiInstance?: AxiosInstance
   sponsorGasContract?: GasSponsor
 
@@ -128,15 +128,10 @@ export class GiftFactory extends GiftCore{
   async claimGift(params: ClaimRewardParams): Promise<ClaimRewardRespone>{
     const { wallet, giftContractAddress, nodeId } = params
 
-    const { reward } = await this.getInsertedSlot({
-      recipientAddress: wallet?.address,
-      giftContractAddress,
-      nodeId
-    })
-    // await  getInsertedSlotReward({giftContractAddress,recipientAddress: wallet?.address, chatApiInstance: this.chatApiInstance })
+    const remainingReward = await getInsertedSlotReward({giftContractAddress, nodeId ,recipientAddress: wallet?.address, chatApiInstance: this.chatApiInstance })
     const response = await this.sponsorGasContract?.claimReward(params)
 
-    return {...response, amount: reward || 0} as ClaimRewardRespone
+    return {...response, amount: remainingReward || 0} as ClaimRewardRespone
   }
 
   getRawDataClaimGift(params: ClaimRewardParams): RawData{
@@ -146,8 +141,7 @@ export class GiftFactory extends GiftCore{
   }
 
   async withdrawRemainingReward(params: WithdrawRewardParams): Promise<WithdrawGiftRespone>{
-    const { remainingReward } = await this.getGiftConfig(params?.giftContractAddress)
-    // await getGiftReward(params.giftContractAddress, this.chatApiInstance as AxiosInstance)
+    const remainingReward = await getGiftReward(params.giftContractAddress, this.chatApiInstance as AxiosInstance)
 
     const response = await this.sponsorGasContract?.withdrawRemainingReward(params)
 
