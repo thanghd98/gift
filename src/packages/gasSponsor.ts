@@ -45,12 +45,12 @@ export class GasSponsor extends GiftCore {
 
 
     async claimReward(params: ClaimRewardParams): Promise<ClaimRewardRespone>{
-        const{ wallet, giftContractAddress, gasLimit, gasPrice } = params
+        const{ wallet, giftContractAddress, gasLimit, gasPrice, nodeId } = params
         try {
             const nonce = await this.getNonceAccount(wallet.address)
 
             const owner = this.createSigner(wallet)
-            const response = await this.contract.connect(owner).claimReward(giftContractAddress,{
+            const response = await this.contract.connect(owner).claimReward(giftContractAddress, nodeId,{
                 gasLimit,
                 gasPrice,
                 nonce

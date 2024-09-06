@@ -41,7 +41,9 @@ interface BaseRewardParams{
     giftContractAddress: string
 }
 
-export interface ClaimRewardParams  extends BaseRewardParams{ }
+export interface ClaimRewardParams  extends BaseRewardParams{
+    nodeId: string
+}
 
 
 export interface WithdrawRewardParams extends BaseRewardParams{ }
@@ -64,7 +66,8 @@ export interface WithdrawGiftRespone extends BaseRewardRespone{
 
 export interface GetInsertedSlotParams{
     giftContractAddress: string,
-    recipientAddress: string
+    recipientAddress: string,
+    nodeId: string
 }
 
 export interface GiftConfigResponse{

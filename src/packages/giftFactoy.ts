@@ -1,7 +1,6 @@
 import { TokenInfo, Wallet } from "@wallet/core";
 import { AxiosInstance } from "axios";
 import { Contract, ethers, Wallet as EtherWallets } from "ethers";
-import { getGiftReward, getInsertedSlotReward } from "../api";
 import { CONTRACT_NAME, ERC20ABI, GIFT_ABI } from '../constants'
 import { ClaimRewardParams, ClaimRewardRespone, CreateGiftRespone, CreateGiftsParams, GetInsertedSlotParams, GiftConfigResponse, GiftFactoryEngine, InsertedSlotRepsonse, RawData, SetFee, SubmitRewardParams, WithdrawGiftRespone, WithdrawRewardParams } from "../types";
 import { convertBalanceToWei } from "../utils";
@@ -126,14 +125,17 @@ export class GiftFactory extends GiftCore{
   }
 
   async claimGift(params: ClaimRewardParams): Promise<ClaimRewardRespone>{
-    const { wallet, giftContractAddress } = params
+    const { wallet, giftContractAddress, nodeId } = params
 
-    const reward = await  getInsertedSlotReward({giftContractAddress,recipientAddress: wallet?.address, chatApiInstance: this.chatApiInstance })
-
-
+    const { reward } = await this.getInsertedSlot({
+      recipientAddress: wallet?.address,
+      giftContractAddress,
+      nodeId
+    })
+    // await  getInsertedSlotReward({giftContractAddress,recipientAddress: wallet?.address, chatApiInstance: this.chatApiInstance })
     const response = await this.sponsorGasContract?.claimReward(params)
 
-    return {...response, amount: reward} as ClaimRewardRespone
+    return {...response, amount: reward || 0} as ClaimRewardRespone
   }
 
   getRawDataClaimGift(params: ClaimRewardParams): RawData{
@@ -143,11 +145,12 @@ export class GiftFactory extends GiftCore{
   }
 
   async withdrawRemainingReward(params: WithdrawRewardParams): Promise<WithdrawGiftRespone>{
-    const giftReward = await getGiftReward(params.giftContractAddress, this.chatApiInstance as AxiosInstance)
+    const { remainingReward } = await this.getGiftConfig(params?.giftContractAddress)
+    // await getGiftReward(params.giftContractAddress, this.chatApiInstance as AxiosInstance)
 
     const response = await this.sponsorGasContract?.withdrawRemainingReward(params)
 
-    return {...response, amount: giftReward} as WithdrawGiftRespone
+    return {...response, amount: remainingReward || 0} as WithdrawGiftRespone
   }
 
   getRawDataWithdrawReward(params: ClaimRewardParams): RawData{
@@ -163,9 +166,11 @@ export class GiftFactory extends GiftCore{
       const giftContract = new ethers.Contract(giftContractAddress , GIFT_ABI['COIN98_GIFT_CONTRACT_ADDRESS'], amdin )
 
       // const nodeIdsBytes32 = nodeIds?.map((nodeId => ethers.utils.formatBytes32String(nodeId)))
-      const transaction = await giftContract.connect(amdin as ethers.Wallet).submitRewardRecipients(recipcients, nodeIds,{
-        gasLimit: 65000000
-      })
+      const transaction = await giftContract.connect(amdin as ethers.Wallet).submitRewardRecipients(recipcients, nodeIds,
+        {
+        gasLimit: 6500000
+      }
+      )
 
       const { transactionHash } = await transaction.wait()
 
@@ -264,10 +269,10 @@ export class GiftFactory extends GiftCore{
   }
 
   async getInsertedSlot(params: GetInsertedSlotParams): Promise<InsertedSlotRepsonse>{
-    const { giftContractAddress, recipientAddress } = params
+    const { giftContractAddress, recipientAddress, nodeId } = params
     try {
       const giftContract = new ethers.Contract(giftContractAddress , GIFT_ABI['COIN98_GIFT_CONTRACT_ADDRESS'], this.admin)
-      const slotConfig = await giftContract.connect(this.admin as ethers.Wallet).getInsertedSlot(recipientAddress)
+      const slotConfig = await giftContract.connect(this.admin as ethers.Wallet).getInsertedSlot(recipientAddress, nodeId)
 
       return {
         isClaimed: slotConfig.isClaimed,
