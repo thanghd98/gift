@@ -9,6 +9,7 @@ import { GiftCore } from "./giftCore";
 
 export class GiftFactory extends GiftCore{
   static instance: GiftFactory
+  //@ts-expect-error
   private chatApiInstance?: AxiosInstance
   sponsorGasContract?: GasSponsor
 
